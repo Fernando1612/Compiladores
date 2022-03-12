@@ -52,7 +52,7 @@ const_cadenas \"(?:[^"\\]|\\.){0,38}\"
 typedef struct nodo
 {
     int dato;               //Tipo de dato de la lista
-    char s[100][40+1];
+    char s[200][40+1];
     struct nodo* siguiente; //Apuntador al siguiente nodo o nulo
 }nodo;
 
