@@ -36,7 +36,6 @@ const_num_ent_hex 0[Xx][0-9a-fA-F]+
 ident ([a-zA-Z_][a-zA-Z_0-9]*|[0-9]+(_|[a-zA-Z])+[0-9]*)
 sim_especial [\.:\(\){}]
 const_cadenas \"(?:[^"\\]|\\.)*\"
-char return_char(char* s);
 
 %%
 {pal_res} {crear_token(4,yytext);}
