@@ -17,11 +17,13 @@ void insertarNodo(int a,char *s);
 int buscarNodo(char *s);
 int check_octal(char *s);
 void crear_token_num(char *s);
+void escribir_atomo(char *s);
 
 FILE *archSalTok;
 FILE *archSalTS;
 FILE *archSalLC;
 FILE *archSalLNR;
+FILE *archCadena;
 %}
 
 
@@ -47,10 +49,15 @@ const_cadenas \"(?:[^"\\]|\\.)*\"
 {const_num_ent_dec} {crear_token_num(yytext);}
 {const_num_ent_hex} {crear_token_num(yytext);}
 {ident} {crear_token_iden(yytext);}
-{sim_especial} {fprintf(archSalTok," 5     | %s\n",yytext);}
+{sim_especial} {fprintf(archSalTok," 5     | %s\n",yytext); fprintf(archCadena,"%s",yytext);}
 {const_cadenas} {crear_token_cadena(yytext);}
 %%
-
+// Objetivo: 
+// 
+// INTEGRANTES:
+// MACEDA PATRICIO FERNANDO
+// CALDERON GUEVARA CESAR YAIR
+// FECHA DE REALIZACION: 09/MAR/2022 
 //Se utilizo la estructura de datos de lista simple enlazada
 //Estructura nodo
 typedef struct nodo
@@ -122,6 +129,7 @@ int buscarNodo(char* s){
 //Escribimos en el archivo de tokens la clase y la posicion de nuestros catalogos ya definidos
 void crear_token(int c,char *s){
     fprintf(archSalTok," %d     | %d\n", c,val_token(s));    
+    escribir_atomo(s);
 }
 
 //Escribimos los tokens de los identificadores y con ayuda de las funciones buscar nodo y crear nodo
@@ -136,6 +144,7 @@ void crear_token_iden(char* s){
     }else{
         fprintf(archSalTok," 0     | %d\n",posicion_simbolo_repetida);
     }
+    fprintf(archCadena,"a");
      
 }
 
@@ -147,10 +156,10 @@ void crear_token_cadena(char *s){
         fprintf(archSalTok," 7     | %d\n",cont_cadena);
         fprintf(archSalLC," %d   | %s\n",cont_cadena,s);
         cont_cadena = cont_cadena + 1;
+        fprintf(archCadena,"k");
     }else{
         printf("\nCadena demasiado grande %s\n", s);
     }
-    
     
 }
 
@@ -159,6 +168,7 @@ void crear_token_cadena(char *s){
 void crear_token_num(char *s){
     if(check_octal(s) == 0 && strcmp(sim_entero,"1") == 0){
         fprintf(archSalTok," 1     | %s\n",s);
+        fprintf(archCadena,"n");
     }
 }
 
@@ -182,6 +192,7 @@ int check_octal(char *s){
         return 1;
     }else if(strcmp(sim_entero,"0")== 0 && sr !='9' && sr !='8'){
         fprintf(archSalTok," 1     | 0\n");
+        fprintf(archCadena,"n");
         strcpy(sim_entero,"1");
         return 0;
     }else{
@@ -196,9 +207,10 @@ void crear_token_num_real(char* s){
     fprintf(archSalTok," 8     | %d\n",cont_num_real);
     fprintf(archSalLNR," %d   | %s\n", cont_num_real, s);
     cont_num_real = cont_num_real + 1;
+    fprintf(archCadena,"r");
 }
 
-//DEfinimos los catalogos acorados en clase y regresamos el valor de su clase dependeindo del simbolo dado
+//Definimos los catalogos acorados en clase y regresamos el valor de su clase dependeindo del simbolo dado
 int val_token(char *s){
     if(strcmp(s,"cadena") == 0 || strcmp(s,"<M>") == 0 || strcmp(s,"i_i") == 0 || strcmp(s,"sum") == 0){
         return 0;
@@ -226,8 +238,78 @@ int val_token(char *s){
 
 }
 
-void main(int argc, char *argv[]){
-    yyin = fopen(argv[1],"r");
+// Función que escribe el atomo que le corresponde a nuestra cadena de salida dependiendo de la entrada
+void escribir_atomo(char *s){
+    if(strcmp(s,"cadena") == 0){
+        fprintf(archCadena,"s");
+    }else if(strcmp(s,"devuelve") == 0){
+        fprintf(archCadena,"d");
+    }else if(strcmp(s,"entero") == 0){
+        fprintf(archCadena,"t");
+    }else if(strcmp(s,"flotante") == 0){
+        fprintf(archCadena,"f");
+    }else if(strcmp(s,"hacer") == 0){
+        fprintf(archCadena,"h");
+    }else if(strcmp(s,"mientras") == 0){
+        fprintf(archCadena,"m");
+    }else if(strcmp(s,"nulo") == 0){
+        fprintf(archCadena,"u");
+    }else if(strcmp(s,"para") == 0){
+        fprintf(archCadena,"p");
+    }else if(strcmp(s,"si") == 0){
+        fprintf(archCadena,"i");
+    }else if(strcmp(s,"sino") == 0){
+        fprintf(archCadena,"w");
+    }else if(strcmp(s,"vacio") == 0){
+        fprintf(archCadena,"v");
+    }else if(strcmp(s,"<M>") == 0){
+        fprintf(archCadena,">");
+    }else if(strcmp(s,"<m>") == 0){
+        fprintf(archCadena,"<");
+    }else if(strcmp(s,"<=>") == 0){
+        fprintf(archCadena,"=");
+    }else if(strcmp(s,"<M=>") == 0){
+        fprintf(archCadena,"g");
+    }else if(strcmp(s,"<m=>") == 0){
+        fprintf(archCadena,"l");
+    }else if(strcmp(s,"<$=>") == 0){
+        fprintf(archCadena,"!");
+    }else if(strcmp(s,"i_i") == 0){
+        fprintf(archCadena,"e");
+    }else if(strcmp(s,"M_i") == 0){
+        fprintf(archCadena,"b");
+    }else if(strcmp(s,"m_i") == 0){
+        fprintf(archCadena,"c");
+    }else if(strcmp(s,"a_i") == 0){
+        fprintf(archCadena,"j");
+    }else if(strcmp(s,"d_i") == 0){
+        fprintf(archCadena,"o");
+    }else if(strcmp(s,"p_i") == 0){
+        fprintf(archCadena,"q");
+    }else if(strcmp(s,"A_i") == 0){
+        fprintf(archCadena,"x");
+    }else if(strcmp(s,"P_i") == 0){
+        fprintf(archCadena,"y");
+    }else if(strcmp(s,"B_i") == 0){
+        fprintf(archCadena,"z");
+    }else if(strcmp(s,"sum") == 0){
+        fprintf(archCadena,"+");
+    }else if(strcmp(s,"res") == 0){
+        fprintf(archCadena,"-");
+    }else if(strcmp(s,"mult") == 0){
+        fprintf(archCadena,"*");
+    }else if(strcmp(s,"div") == 0){
+        fprintf(archCadena,"/");
+    }else if(strcmp(s,"mod") == 0){
+        fprintf(archCadena,"%%");
+    }else if(strcmp(s,"pow") == 0){
+        fprintf(archCadena,"^");
+    }
+    
+}
+ 
+// Función que sirve para abrir los archivos que vamos a utilizar y escribir la cabecera
+void open_files(){
     archSalTok = fopen("salida_tokens.txt","w");
     fprintf(archSalTok," Clase | valor\n");
     archSalTS = fopen("salida_tabla_simbolos.txt","w");
@@ -236,12 +318,22 @@ void main(int argc, char *argv[]){
     fprintf(archSalLC," Pos | Cadena\n");
     archSalLNR = fopen("salida_literales_numericas_reales.txt","w");
     fprintf(archSalLNR," Pos | Constante\n");
+    archCadena = fopen("cadena_salida.txt","w");
+}
 
-    yylex();
-
-
+// Funciión que sirve para cerrar los archivos
+void close_files(){
     fclose(archSalTok);
     fclose(archSalTS);
     fclose(archSalLC);
     fclose(archSalLNR);
+    fclose(archCadena);
+}
+
+// Funcion principal que llama a las funciones de abrir archivos, yylex() y cerrar archivos
+void main(int argc, char *argv[]){
+    yyin = fopen(argv[1],"r");
+    open_files();
+    yylex();
+    close_files();
 }
