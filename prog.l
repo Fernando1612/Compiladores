@@ -12,12 +12,52 @@ int cont_num_real = 0;
 int cont_cadena = 0;
 int contador_lista = 0;
 int posicion_simbolo_repetida = 0;
+int pos_atomo = 0;
 char sim_entero[10];
+char c;
+char* atomos = NULL;
+char atomoActual();
 void insertarNodo(int a,char *s);
 int buscarNodo(char *s);
 int check_octal(char *s);
 void crear_token_num(char *s);
 void escribir_atomo(char *s);
+void leerCadena();
+
+void tipo();
+void L();
+void D();
+void R();
+void S();
+void tipoF();
+void Fun();
+void param();
+void otroParam();
+void H();
+void expreRel();
+void E();
+void contER();
+void opRel();
+void T();
+void EE();
+void F(); 
+void TT();
+void llama();
+void M();
+void P();
+void I();
+void arg();
+void otroArg();
+void devuelve();
+void valor();
+void otroValor();
+void A();
+void opAsig();
+void Programa();
+void decl();
+void masFunciones();
+void otraFun();
+void check_sintaxis();
 
 FILE *archSalTok;
 FILE *archSalTS;
@@ -166,40 +206,9 @@ void crear_token_cadena(char *s){
 //Escribimos los tokens de los numeros enteros (decimal,octal y hexadecimal)
 //con su respectiva clase y valor
 void crear_token_num(char *s){
-    if(check_octal(s) == 0 && strcmp(sim_entero,"1") == 0){
-        fprintf(archSalTok," 1     | %s\n",s);
-        fprintf(archCadena,"n");
-    }
+    fprintf(archSalTok," 1     | %s\n",s);
+    fprintf(archCadena,"n");
 }
-
-//Utilizamos la funcion check octal para verificar que los numeros ingresados son octales y evitar los casos como:
-// 08 u 09
-int check_octal(char *s){
-    char str[10][10];
-    strcpy(str[0],s);
-    char sr;
-    sr = str[0][0];
-    if(strcmp(s,"0") == 0){
-        strcpy(sim_entero,s);
-    }
-    else if(strcmp(sim_entero,"0")== 0 && sr == '8'){
-        printf("\nEl numero no es octal\n");
-        strcpy(sim_entero,"1");
-        return 1;
-    }else if(strcmp(sim_entero,"0")== 0 && sr =='9'){
-        printf("\nEl numero no es octal\n");
-        strcpy(sim_entero,"1");
-        return 1;
-    }else if(strcmp(sim_entero,"0")== 0 && sr !='9' && sr !='8'){
-        fprintf(archSalTok," 1     | 0\n");
-        fprintf(archCadena,"n");
-        strcpy(sim_entero,"1");
-        return 0;
-    }else{
-        return 0;
-    }
-}
-
 
 //Escribimos los tokens para los numeros reales con su respectiva clase y posicion
 //Ademas escribimos la tabla de estos numeros con su posicion y valor
@@ -321,7 +330,7 @@ void open_files(){
     archCadena = fopen("cadena_salida.txt","w");
 }
 
-// Funciión que sirve para cerrar los archivos
+// Función que sirve para cerrar los archivos
 void close_files(){
     fclose(archSalTok);
     fclose(archSalTS);
@@ -330,10 +339,585 @@ void close_files(){
     fclose(archCadena);
 }
 
+// Sentecias declaraticas
+// Declar n variables
+void D(){
+    tipo();
+    c = atomoActual();
+    
+    if(c = 'a'){
+        c = atomoActual();
+        L();
+        return;
+    }else{
+        printf("Falta identificador");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void L(){
+    if(c == '.'){
+        c = atomoActual();
+        return;
+    }else if(c == ':'){
+        c = atomoActual();
+        if(c == 'a'){
+            c = atomoActual();
+            L();
+        }else{
+            printf("Error en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE);
+        }
+    }else{
+        printf("Error en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void tipo(){
+    if(c == 's' || c == 't' || c == 'f'){
+        return;
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void Fun(){
+    tipoF();
+    c = atomoActual();
+    if(c == 'a'){
+        c = atomoActual();
+        if(c == '('){
+            c = atomoActual();
+            param();
+            if(c == '{'){
+                c = atomoActual();
+                R();
+            }
+        }
+
+    }
+}
+
+void param(){
+    if(c == ')'){
+        c = atomoActual();
+        return;
+    }else{
+        tipoF();
+        c = atomoActual();
+        if(c == 'a'){
+            c = atomoActual();
+            otroParam();
+            return;
+        }else{
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void otroParam(){
+    if(c == ')'){
+        c = atomoActual();
+        return;
+    }else{
+        if(c == ':'){
+            c = atomoActual();
+            tipo();
+            c = atomoActual();
+            if(c == 'a'){
+                c = atomoActual();
+                otroParam();
+            }
+        }
+    }
+}
+
+void tipoF(){
+    if(c == 's' || c == 't' || c == 'f' || c == 'v'){
+        return;
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void R(){
+    if(c == '}'){
+        c = atomoActual();
+        return;
+    }else if (c != '\0'){
+        S();
+        R();
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void S(){
+    if(c == 's' || c == 't' || c == 'f'){
+        D();
+    }else if(c == 'a'){
+        A();
+    }else if(c == 'h'){
+        H();
+    }else if(c == 'm'){
+        M();
+    }else if(c == 'p'){
+        P();
+    }else if(c == 'i'){
+        I();
+    }else if(c == '{'){
+        c = atomoActual();
+        llama();
+    }else if(c == 'd'){
+        devuelve();
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void H(){
+    if(c == 'h'){
+        c = atomoActual();
+        if(c == '{'){
+            c = atomoActual();
+            S();
+            R();
+            if(c == 'm'){
+                c = atomoActual();
+                if(c == '('){
+                    c = atomoActual();
+                    expreRel();
+                    if(c == ')'){
+                        c = atomoActual();
+                        if(c == '.'){
+                            c = atomoActual();
+                            return;
+                        }else{
+                            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                            exit(EXIT_FAILURE);
+                        }
+                    }else{
+                        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                        exit(EXIT_FAILURE);
+                    }
+                }else{
+                    printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void expreRel(){
+    E();
+    contER();
+    return;
+}
+
+void E(){
+    T();
+    EE();
+    return;
+}
+
+void T(){
+    F();
+    TT();
+    return;
+}
+
+void F(){
+    if(c == '('){
+        c = atomoActual();
+        E();
+        if(c == ')'){
+            c = atomoActual();
+            return;
+        }
+    }else if(c == 'a' || c == 'r' || c == 'n'){
+        c = atomoActual();
+        return;
+    }else if(c == '{'){
+        c = atomoActual();
+        llama();
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void EE(){
+    if(c == '+'){
+        c = atomoActual();
+        T();
+        EE();
+        return;
+    }else if(c == '-'){
+        c = atomoActual();
+        T();
+        EE();
+        return;
+    }else{
+        return;
+    }
+}
+
+void TT(){
+    if(c == '*'){
+        c = atomoActual();
+        F();
+        TT();
+        return;
+    }else if(c == '/'){
+        c = atomoActual();
+        F();
+        TT();
+        return;
+    }else if(c == '%'){
+        c = atomoActual();
+        F();
+        TT();
+        return;
+    }else if(c == '^'){
+        c = atomoActual();
+        F();
+        TT();
+        return;
+    }else{
+        return;
+    }
+}
+
+void contER(){
+    opRel();
+    E();
+    return;
+}
+
+void opRel(){
+    if(c == '>' || c == '<' || c == '=' || c == 'g' || c == 'l' || c == '!'){
+        c = atomoActual();
+        return;
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void M(){
+    if(c == 'm'){
+        c = atomoActual();
+        if(c == '('){
+            c = atomoActual();
+            expreRel();
+            if(c == ')'){
+                c = atomoActual();
+                if(c == '{'){
+                    c = atomoActual();
+                    S();
+                    R();
+                    if(c == '.'){
+                        c = atomoActual();
+                        return;
+                    }else{
+                        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                        exit(EXIT_FAILURE);
+                    }
+                }else{
+                    printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                    exit(EXIT_FAILURE);
+                }
+            }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                exit(EXIT_FAILURE);
+            }
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void P(){
+    if(c == 'p'){
+        c = atomoActual();
+        if(c == 'n'){
+            c = atomoActual();
+            if(c == '{'){
+                c = atomoActual();
+                R();
+                if(c == '.'){
+                    c = atomoActual();
+                    return;
+                }else{
+                    printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                    exit(EXIT_FAILURE);
+                }
+            }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                exit(EXIT_FAILURE);
+            }
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void I(){
+    if(c == 'i'){
+        c = atomoActual();
+        if(c == '('){
+            c = atomoActual();
+            expreRel();
+            if(c == ')'){
+                c = atomoActual();
+                if(c == '{'){
+                    c = atomoActual();
+                    R();
+                    if(c == 'w'){
+                        c = atomoActual();
+                        if(c == '{'){
+                            c = atomoActual();
+                            R();
+                            if(c == '.'){
+                                c = atomoActual();
+                                return;
+                            }else{
+                                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                                exit(EXIT_FAILURE);
+                            }
+                        }else{
+                            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                            exit(EXIT_FAILURE);
+                        }
+
+                    }else{
+                        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                        exit(EXIT_FAILURE);
+                    }                                                                                              
+                }else{
+                    printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                    exit(EXIT_FAILURE);
+                }
+            }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                exit(EXIT_FAILURE);
+            }
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void llama(){
+    if(c == 'a'){
+        c = atomoActual();
+        if(c == '('){
+            c = atomoActual();
+            arg();
+            if(c == '}'){
+                c = atomoActual();
+                if(c == '.'){
+                    c = atomoActual();
+                    return;
+                }else{
+                    printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                    exit(EXIT_FAILURE);
+                }
+            }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                exit(EXIT_FAILURE);
+            }
+        }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                exit(EXIT_FAILURE);
+        }
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void arg(){
+    if(c == ')'){
+        c = atomoActual();
+        return;
+    }else if(c == 'a'){
+        c = atomoActual();
+        otroArg();
+        return;
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void otroArg(){
+    if (c == ')'){
+        c = atomoActual();
+        return;
+    }else if(c == ':'){
+        c = atomoActual();
+        if(c == 'a'){
+            c = atomoActual();
+            otroArg();
+        }
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void devuelve(){
+    if(c == 'd'){
+        c = atomoActual();
+        if(c == '('){
+            c = atomoActual();
+            valor();
+            if( c == ')'){
+                c = atomoActual();
+                if(c == '.'){
+                    c = atomoActual();
+                    return;
+                }else{
+                    printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                    exit(EXIT_FAILURE);
+                }
+            }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                exit(EXIT_FAILURE);
+            }
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+void valor(){
+    if(c == 'a' || c == 'n' || c == 'r'){
+        c = atomoActual();
+        return;
+    }else{
+        otroValor();
+    }
+}
+
+void otroValor(){
+    if(c == 'u' || c == 'k'){
+        c = atomoActual();
+        return;
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void A(){
+    if(c == 'a'){
+        c = atomoActual();
+        opAsig();
+        E();
+        if(c == ':'){
+            c = atomoActual();
+            return;
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            exit(EXIT_FAILURE); 
+        }
+    }
+}
+
+void opAsig(){
+    if(c == 'e' || c == 'b' || c == 'c' || c == 'j' || c == 'o' || c == 'q' || c == 'x' || c == 'y' || c == 'z'){
+        c = atomoActual();
+    }else{
+        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        exit(EXIT_FAILURE);
+    }
+}
+
+void Programa(){
+    decl();
+    masFunciones();
+    if(c == '\0'){
+        printf("\nAnalisis sintactico correcto\n");
+        return;
+    }else{
+        printf("\nError al hacer el analisis sintactico\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void decl() {
+    if(c == '{'){
+        c = atomoActual();
+        return;
+    }else{
+        D();
+        decl();
+    }
+}
+
+void masFunciones(){
+    Fun();
+    otraFun();
+    return;
+}
+
+void otraFun(){
+    if(c == '}'){
+        c = atomoActual();
+        return;
+    }else{
+        Fun();
+        otraFun();
+    }
+}
+
+//Funcion que sirve para crear un arrglo de la cadena de atomos y sea más facil manipularla
+void leerCadena(){
+    archCadena = fopen("cadena_salida.txt","r");
+    int size;
+    if(archCadena != NULL){
+        size = 1;
+        while(getc(archCadena) != EOF){
+            size++;
+        }
+    }
+    atomos = (char*) malloc(sizeof(char)*size);
+    fseek(archCadena,0,SEEK_SET);
+    for(int i = 0; i < size - 1; i++){
+        atomos[i] = (char)getc(archCadena);
+    }
+    atomos[size-1] = '\0';
+    fclose(archCadena); 
+    c = atomos[0];      
+}
+
+char atomoActual(){
+    pos_atomo++;
+    return atomos[pos_atomo];
+}
+
+
 // Funcion principal que llama a las funciones de abrir archivos, yylex() y cerrar archivos
 void main(int argc, char *argv[]){
     yyin = fopen(argv[1],"r");
     open_files();
     yylex();
     close_files();
+    leerCadena(); 
+    Programa();
 }
