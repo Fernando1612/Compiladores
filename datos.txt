@@ -1,37 +1,63 @@
-"Hola"
-Hola
-1identificador
-A
-identificador
-1_
-16_a3
-a_13_ident
-2a
-"sakjsalkjslkdjskjfhasldkfhadkljhfladsfhkalsdhflkasjdfhlkashflkasdjfhlasdkjfhlkasdjfhlkasjfhlaksdhfaslk"
-2.67
-.85
-31.
-cadena <M> i_i sum
-devuelve
-entero
-flotante
-hacer
-mientras
-nulo
-para
-si
-sino
-vacio
-pow
-P_i
-.
-:
-()
-{}
-08
-07
-0
-06
-09
-010
-03
+cadena 2_cadena : otra_cadena1.
+flotante num_r3.
+{
+
+cadena 1_afun (entero x_1){
+
+hacer {
+cadena 2_cadena.
+flotante num_r.
+entero ent_num.
+}mientras( a_1 <m> 07 ).
+
+mientras (a_1 <m> 10){
+cadena 2_cadena.
+flotante num_r.
+entero ent_num.
+}.
+
+para 12 {
+cadena 2_cadena.
+flotante num_r.
+entero ent_num.
+}.
+
+si(a_1 <m> 10){
+cadena 2_cadena.
+flotante num_r.
+}sino{
+entero ent_num.
+}.
+
+{fun1(3x:aa:aaa:bb)}.
+
+hacer{
+cadena 2_cadena.
+flotante num_r.
+entero ent_num.
+}mientras({fun1(3x:aa:aaa:bb)}. <m> 10 ).
+
+a1_ i_i 2:
+b3x d_i 5.3 mult (a1_ sum a2_):
+}
+
+entero 1_afun (entero x_1){
+	a1_ i_i 2:
+	b3x d_i 5.3 mult (a1_ sum a2_):
+	cadena 2_cadena : otra_cadena2.
+	flotante num_r2.
+}
+
+flotante 2_afun (){
+	a1_ i_i 2:
+	b3x d_i 5.3 mult (a1_ sum a2_):
+}
+
+
+vacio 2_afun (){
+	a1_ i_i 2:
+	b3x d_i 5.3 mult (a1_ sum a2_):
+}
+
+
+}
