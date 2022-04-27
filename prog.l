@@ -959,10 +959,12 @@ void Programa(){
     masFunciones();
     if(c == '\0' && error == false){
         printf("\nAnalisis sintactico correcto\n");
+        remove("cadena_salida_copia.txt");
         exit(EXIT_SUCCESS);
         return;
     }else if(error == true){
         printf("\nError al hacer el analisis sintactico\n");
+        remove("cadena_salida_copia.txt");
         exit(EXIT_FAILURE);
         return;
     }
@@ -997,7 +999,7 @@ void otraFun(){
 
 //Funcion que sirve para crear un arrglo de la cadena de atomos y sea más facil manipularla
 void leerCadena(){
-    archCadena = fopen("cadena_salida.txt","r");
+    archCadena = fopen("cadena_salida_copia.txt","r");
     int size;
     if(archCadena != NULL){
         size = 1;
@@ -1018,7 +1020,7 @@ void leerCadena(){
 
 //Función para escribir el archivo de cadenas de atomos
 void writeFile(int position, char *data){
-    FILE *file = fopen("cadena_salida.txt", "r+");
+    FILE *file = fopen("cadena_salida_copia.txt", "r+");
     fseek(file, position, SEEK_SET);
     fwrite(data, strlen(data), 1, file);
     fclose(file);
@@ -1026,7 +1028,7 @@ void writeFile(int position, char *data){
 
 // Función para leer el archivo de cadenas de atomos
 char *readFile(int position, int tamano){
-    FILE *file = fopen("cadena_salida.txt", "r+");
+    FILE *file = fopen("cadena_salida_copia.txt", "r+");
     fseek(file,position,SEEK_SET);
     char *buf = malloc (sizeof (char) * tamano); 
     memset(buf, 0, tamano);
@@ -1039,7 +1041,7 @@ char *readFile(int position, int tamano){
 int contarElementos(int position){
     char ch;
 	int count=1;
-    FILE *file = fopen("cadena_salida.txt", "r+");
+    FILE *file = fopen("cadena_salida_copia.txt", "r+");
     fseek(file,position,SEEK_SET);
     while((ch=fgetc(file))!=EOF) {
 		count++;
@@ -1080,6 +1082,19 @@ void reescribir_atomo(char *s){
     Programa();
 }
 
+//Función para copiar los archivos de cadena de atomos
+//Uno como el resultado final de la entrada del archivo fuente
+//Otro para manipularlo
+void copiarArchivoCadena(){
+   char ch;
+   FILE *source = fopen("cadena_salida.txt", "r");
+   FILE *target = fopen("cadena_salida_copia.txt", "w");
+   while( ( ch = fgetc(source) ) != EOF )
+      fputc(ch, target);
+   fclose(source);
+   fclose(target);
+}
+
 //Función que regreasa el atomo donde vamos
 // y suma en uno su posición
 char atomoActual(){
@@ -1093,11 +1108,14 @@ void analisis_sintactico(){
 }
 
 
-// Funcion principal que llama a las funciones de abrir archivos, yylex(), cerrar archivos y el analisis sintactico.
+// Funcion principal que llama a las funciones de abrir archivos, yylex(), cerrar archivos,
+//copiar archivo de cadena de atomos, el analisis sintactico y eliminar el archivo sobrante de la cadena de atomos
+//modificada.
 void main(int argc, char *argv[]){
     yyin = fopen(argv[1],"r");
     open_files();
     yylex();
     close_files();
+    copiarArchivoCadena();
     analisis_sintactico();
 }
