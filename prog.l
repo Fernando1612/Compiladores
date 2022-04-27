@@ -1,33 +1,42 @@
 %{
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-void crear_token();
-void crear_token_iden();
-void crear_token_cadena();
-void crear_token_num_real();
-int val_token();
-int cont_ident = 0;
-int cont_num_real = 0;
-int cont_cadena = 0;
-int contador_lista = 0;
-int posicion_simbolo_repetida = 0;
-int pos_atomo = 0;
-char sim_entero[10];
-char c;
-char* atomos = NULL;
-char atomoActual();
-void insertarNodo(int a,char *s);
-int buscarNodo(char *s);
-int check_octal(char *s);
-void crear_token_num(char *s);
-void escribir_atomo(char *s);
-void leerCadena();
+// Objetivo: 
+// 
+// INTEGRANTES:
+// MACEDA PATRICIO FERNANDO
+// CALDERON GUEVARA CESAR YAIR
+// FECHA DE REALIZACION: /ABR/2022 
 
+#include <string.h> // Biblioteca string para el manejo de memoria
+#include <stdio.h>  // Biblioteca estandar de entrada y salida
+#include <stdlib.h> // Biblioteca para el manejo dinamico de memoria
+#include <stdbool.h> //Biblioteca para el manejo de valores booleanos
+
+void crear_token(); // Función para crear tokens
+void crear_token_iden();    // Función para crear tokens de los identificadores
+void crear_token_cadena();  // Función para crear tokens de las cadenas
+void crear_token_num_real(); // Función para crear tokens de los numéros reales
+int val_token();    // Función para saber a que clase pertence el token
+int cont_ident = 0; // Contador de indentificadores
+int cont_num_real = 0;  // Contadore de numéros reales 
+int cont_cadena = 0;    // Contador de cadenas
+int contador_lista = 0; // Contador para elementos de la lista de identificadores
+int posicion_simbolo_repetida = 0;  // Contador para guardar la posicón de indentificadores repetidos 
+int pos_atomo = 0; // Contador para guardar la posición del atomo actual de nuestra cadena de atomos
+char c; // Variable donde guardamos el valor del atomo actual
+char* atomos = NULL; // Arreglo de cararctres donde guardamos la cadena de atomos
+char atomoActual(); // Función que devuelve el atomo actual y le suma uno a pos_atomo
+bool error = false; // Variable boolenana para saber si ocurrio un error sintactico o no 
+char estado;
+void insertarNodo(int a,char *s); // Función para insertar un nuevo nodo a nuestra lista
+int buscarNodo(char *s);  // Función para buscar un nodo en nuestra lista
+void crear_token_num(char *s); // Función para crear tokens de los numéros constantes
+void escribir_atomo(char *s); // Función para escribir atomo en el archivo de salida
+void leerCadena(); // Función donde se lee el archivo de la cadena de atomos y crearmos un arreglo de atomos
+// Producciones
 void tipo();
-void L();
-void D();
-void R();
+void L(); 
+void D(); 
+void R(); 
 void S();
 void tipoF();
 void Fun();
@@ -59,11 +68,18 @@ void masFunciones();
 void otraFun();
 void check_sintaxis();
 
-FILE *archSalTok;
-FILE *archSalTS;
-FILE *archSalLC;
-FILE *archSalLNR;
-FILE *archCadena;
+void writeFile(int position, char *data); // Función para escribir el archivo de la cadena de atomos
+char *readFile(int position, int tamano); // Función para leer el archivo de la cadena de atomos
+int contarElementos(int position);  // Función para contar el numero de atomos del archivo de salida 
+char *cat(int tamano, char *s1, char *s2); // Función para concatenar dos cadenas
+void reescribir_atomo(char *s); //Función para manejar los errores sintacticos pero seguir con el analisis
+
+
+FILE *archSalTok; // Archivo de salida de tokes
+FILE *archSalTS; // Archivo de salida de tabla de simbolos
+FILE *archSalLC; // Archivo de salida de literales constantes
+FILE *archSalLNR; // Archivo de salida de literales numericas reales
+FILE *archCadena; // Archivo de salida de cadena de atomos
 %}
 
 
@@ -92,12 +108,7 @@ const_cadenas \"(?:[^"\\]|\\.)*\"
 {sim_especial} {fprintf(archSalTok," 5     | %s\n",yytext); fprintf(archCadena,"%s",yytext);}
 {const_cadenas} {crear_token_cadena(yytext);}
 %%
-// Objetivo: 
-// 
-// INTEGRANTES:
-// MACEDA PATRICIO FERNANDO
-// CALDERON GUEVARA CESAR YAIR
-// FECHA DE REALIZACION: 09/MAR/2022 
+
 //Se utilizo la estructura de datos de lista simple enlazada
 //Estructura nodo
 typedef struct nodo
@@ -350,11 +361,15 @@ void D(){
         L();
         return;
     }else{
-        printf("Falta identificador");
-        exit(EXIT_FAILURE);
+        printf("\nFalta identificador\n");
+        printf("Error en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        printf("Se esperaba el atomo (a) \n");
+        error = true;
+        reescribir_atomo("a");
     }
 }
-
+//Función de la producción L
+//Comprueba que los identificadores extras agregados estan correctos
 void L(){
     if(c == '.'){
         c = atomoActual();
@@ -366,23 +381,28 @@ void L(){
             L();
         }else{
             printf("Error en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE);
+            printf("Se esperaba el atomo (a) \n");
+            error = true;
+            reescribir_atomo("a");
         }
     }else{
         printf("Error en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (.) o (:) \n");
+        error = true;
     }
 }
-
+//Se comprueba el tipo de atomo para diferentes preoducciones 
 void tipo(){
     if(c == 's' || c == 't' || c == 'f'){
         return;
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (s) o (t) o (f) \n");
+        error = true;
     }
 }
-
+// Función de la Producción de funciones
+// Comprueba que la declaración de las funciones sea correcta
 void Fun(){
     tipoF();
     c = atomoActual();
@@ -399,7 +419,8 @@ void Fun(){
 
     }
 }
-
+// Función para el reconocmiento de parametros en la funciones
+// Si la gramatica es correcta se pueden agregar mas parametros y se manda a llamar a la funcipon otroParam
 void param(){
     if(c == ')'){
         c = atomoActual();
@@ -412,11 +433,15 @@ void param(){
             otroParam();
             return;
         }else{
-            exit(EXIT_FAILURE);
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            printf("Se esperaba el atomo (a) \n");
+            error = true;
+            reescribir_atomo("a");
         }
     }
 }
-
+//Función para el reconocimiento de parametros extras en la funciones declarados
+//Puede haber o no haber parametros extras
 void otroParam(){
     if(c == ')'){
         c = atomoActual();
@@ -433,16 +458,18 @@ void otroParam(){
         }
     }
 }
-
+// Comprueba el tipo de atomo para las funciones
+// Pueder haber funciones de tipo vacio
 void tipoF(){
     if(c == 's' || c == 't' || c == 'f' || c == 'v'){
         return;
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (s) o (t) o (f) o (v) \n");
+        error = true;
     }
 }
-
+//Función de la producción R para agregar de 0 a n sentencias
 void R(){
     if(c == '}'){
         c = atomoActual();
@@ -450,12 +477,9 @@ void R(){
     }else if (c != '\0'){
         S();
         R();
-    }else{
-        printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
     }
 }
-
+//Función de la S que manda a llamar a ls diferentes sentencias de nuestra gramatica
 void S(){
     if(c == 's' || c == 't' || c == 'f'){
         D();
@@ -476,12 +500,16 @@ void S(){
         devuelve();
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+        printf("Se esperaba el atomo (s) o (t) o (f) o (a) o (h) o (m) o (p) o (i) o ( } ) o (d) \n");
+        error = true;
         exit(EXIT_FAILURE);
     }
 }
-
+// Función para la sentencia hacer-mientras
+// Compreuba si esta sintacticamente correcta
 void H(){
     if(c == 'h'){
+        estado = 'h';
         c = atomoActual();
         if(c == '{'){
             c = atomoActual();
@@ -499,42 +527,57 @@ void H(){
                             return;
                         }else{
                             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                            exit(EXIT_FAILURE);
+                            printf("Se esperaba el atomo ( . ) \n");
+                            error = true;
+                            reescribir_atomo(".");
                         }
                     }else{
                         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                        exit(EXIT_FAILURE);
+                        printf("Se esperaba el atomo ( ) ) \n");
+                        error = true;
+                        reescribir_atomo(")");
                     }
                 }else{
                     printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                    exit(EXIT_FAILURE);
+                    printf("Se esperaba el atomo ( ( ) \n");
+                    error = true;
+                    reescribir_atomo("(");
                 }
+            }else{
+                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+                printf("Se esperaba el atomo (m) \n");
+                error = true;
+                reescribir_atomo("m");
             }
         }else{
             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE);
+            printf("Se esperaba el atomo ( { ) \n");
+            error = true;
+            reescribir_atomo("{");
+            return;
         }
     }
 }
-
+// Función para el reconocimeinto de expresiones Relacionales
 void expreRel(){
     E();
     contER();
     return;
 }
-
+// Función para la producción E
+// Reconocimeinto de expresiones aritmeticas
 void E(){
     T();
     EE();
     return;
 }
-
+// Función para la producción T
 void T(){
     F();
     TT();
     return;
 }
-
+// Función para la producción F
 void F(){
     if(c == '('){
         c = atomoActual();
@@ -551,10 +594,11 @@ void F(){
         llama();
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo ( ( ) o (a) o (r) o (n) o ( { ) \n");
+        error = true;
     }
 }
-
+// Función para la producción EE
 void EE(){
     if(c == '+'){
         c = atomoActual();
@@ -570,7 +614,7 @@ void EE(){
         return;
     }
 }
-
+// Función para la producción TT
 void TT(){
     if(c == '*'){
         c = atomoActual();
@@ -596,23 +640,26 @@ void TT(){
         return;
     }
 }
-
+// Función para la producción contER
 void contER(){
     opRel();
     E();
     return;
 }
-
+// Funcipin para la producción opRel
+// Reconocimiento de operadores relaciones
 void opRel(){
     if(c == '>' || c == '<' || c == '=' || c == 'g' || c == 'l' || c == '!'){
         c = atomoActual();
         return;
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (>) o (<) o (=) o (g) o (l) o (!) \n");
+        error = true;
     }
 }
-
+// Función para la sentencia mientras
+// Compreuba si esta sintacticamente correcta
 void M(){
     if(c == 'm'){
         c = atomoActual();
@@ -630,23 +677,32 @@ void M(){
                         return;
                     }else{
                         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                        exit(EXIT_FAILURE);
+                        printf("Se esperaba el atomo ( . ) \n");
+                        error = true;
+                        reescribir_atomo(".");
                     }
                 }else{
                     printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                    exit(EXIT_FAILURE);
+                    printf("Se esperaba el atomo ( { ) \n");
+                    error = true;
+                    reescribir_atomo("{");
                 }
             }else{
                 printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                exit(EXIT_FAILURE);
+                printf("Se esperaba el atomo ( ) ) \n");
+                error = true;
+                reescribir_atomo(")");
             }
         }else{
             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE);
+            printf("Se esperaba el atomo ( ( ) \n");
+            error = true;
+            reescribir_atomo("(");
         }
     }
 }
-
+// Función para la sentencia para
+// Compreuba si esta sintacticamente correcta
 void P(){
     if(c == 'p'){
         c = atomoActual();
@@ -660,19 +716,26 @@ void P(){
                     return;
                 }else{
                     printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                    exit(EXIT_FAILURE);
+                    printf("Se esperaba el atomo ( . ) \n");
+                    error = true;
+                    reescribir_atomo(".");
                 }
             }else{
                 printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                exit(EXIT_FAILURE);
+                printf("Se esperaba el atomo ( { ) \n");
+                error = true;
+                reescribir_atomo("{");
             }
         }else{
             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE);
+            printf("Se esperaba el atomo (n) \n");
+            error = true;
+            reescribir_atomo("n");
         }
     }
 }
-
+// Función para la sentencia si-sino
+// Compreuba si esta sintacticamente correcta
 void I(){
     if(c == 'i'){
         c = atomoActual();
@@ -694,32 +757,45 @@ void I(){
                                 return;
                             }else{
                                 printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                                exit(EXIT_FAILURE);
+                                printf("Se esperaba el atomo ( . ) \n");
+                                error = true;
+                                reescribir_atomo(".");
                             }
                         }else{
                             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                            exit(EXIT_FAILURE);
+                            printf("Se esperaba el atomo ( { ) \n");
+                            error = true;
+                            reescribir_atomo("{");
                         }
-
                     }else{
                         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                        exit(EXIT_FAILURE);
+                        printf("Se esperaba el atomo (w) \n");
+                        error = true;
+                        reescribir_atomo("w");
                     }                                                                                              
                 }else{
                     printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                    exit(EXIT_FAILURE);
+                    printf("Se esperaba el atomo ( { ) \n");
+                    error = true;
+                    reescribir_atomo("{");
                 }
             }else{
                 printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                exit(EXIT_FAILURE);
+                printf("Se esperaba el atomo ( ) ) \n");
+                error = true;
+                reescribir_atomo(")");
             }
         }else{
             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE);
+            printf("Se esperaba el atomo ( ( ) \n");
+            error = true;
+            reescribir_atomo("(");
+
         }
     }
 }
-
+// Función para la sentencia llamada a una función
+// Compreuba si esta sintacticamente correcta
 void llama(){
     if(c == 'a'){
         c = atomoActual();
@@ -733,22 +809,30 @@ void llama(){
                     return;
                 }else{
                     printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                    exit(EXIT_FAILURE);
+                    printf("Se esperaba el atomo (.) \n");
+                    error = true;
+                    reescribir_atomo(".");
                 }
             }else{
                 printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                exit(EXIT_FAILURE);
+                printf("Se esperaba el atomo ( } ) \n");
+                error = true;
+                reescribir_atomo("}");
             }
         }else{
-                printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                exit(EXIT_FAILURE);
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            printf("Se esperaba el atomo ( ( ) \n");
+            error = true;
+            reescribir_atomo("(");
         }
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (a) \n");
+        error = true;
+        reescribir_atomo("a");
     }
 }
-
+// Función para agregar argunmentos a una función
 void arg(){
     if(c == ')'){
         c = atomoActual();
@@ -759,10 +843,11 @@ void arg(){
         return;
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (a) o ( ) ) \n");
+        error = true;
     }
 }
-
+//Función para agregar mas de un argumento a una función
 void otroArg(){
     if (c == ')'){
         c = atomoActual();
@@ -772,13 +857,20 @@ void otroArg(){
         if(c == 'a'){
             c = atomoActual();
             otroArg();
+        }else{
+            printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
+            printf("Se esperaba el atomo (a) \n");
+            error = true;
+            reescribir_atomo("a");
         }
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo ( ) ) o ( : ) \n");
+        error = true;
     }
 }
-
+// Función para la sentencia devuelve
+// Compreuba si esta sintacticamente correcta
 void devuelve(){
     if(c == 'd'){
         c = atomoActual();
@@ -792,19 +884,26 @@ void devuelve(){
                     return;
                 }else{
                     printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                    exit(EXIT_FAILURE);
+                    printf("Se esperaba el atomo ( . ) \n");
+                    error = true;
+                    reescribir_atomo(".");
                 }
             }else{
                 printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-                exit(EXIT_FAILURE);
+                printf("Se esperaba el atomo ( ) ) \n");
+                error = true;
+                reescribir_atomo(")");
             }
         }else{
             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE);
+            printf("Se esperaba el atomo ( ( ) \n");
+            error = true;
+            reescribir_atomo("(");
         }
     }
 }
-
+//Función para la producción valor 
+//Verifica que los tipos de atomos sean validos
 void valor(){
     if(c == 'a' || c == 'n' || c == 'r'){
         c = atomoActual();
@@ -813,17 +912,20 @@ void valor(){
         otroValor();
     }
 }
-
+//Función para la producción otro-valor 
+//Verifica que los tipos de atomos sean validos
 void otroValor(){
     if(c == 'u' || c == 'k'){
         c = atomoActual();
         return;
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (u) o (k) \n");
+        error = true;
     }
 }
-
+//Función para la producción asignación 
+//Verifica que los tipos de atomos sean validos
 void A(){
     if(c == 'a'){
         c = atomoActual();
@@ -834,32 +936,39 @@ void A(){
             return;
         }else{
             printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-            exit(EXIT_FAILURE); 
+            printf("Se esperaba el atomo ( : ) \n");
+            error = true;
+            reescribir_atomo(":");
         }
     }
 }
-
+// Función para verificar los operadores de assignación
 void opAsig(){
     if(c == 'e' || c == 'b' || c == 'c' || c == 'j' || c == 'o' || c == 'q' || c == 'x' || c == 'y' || c == 'z'){
         c = atomoActual();
     }else{
         printf("Error de tipo en el atomo %c posicion %d\n", atomos[pos_atomo-1], pos_atomo-1);
-        exit(EXIT_FAILURE);
+        printf("Se esperaba el atomo (e) o (b) o (c) o (j) o (o) o (q) o (x) o (y) o (z) \n");
+        error = true;
     }
 }
-
+//Función de la gramatica 
+//Empieza el reconocimiento sintactico de la cadena de atomos creada anteriormente
 void Programa(){
     decl();
     masFunciones();
-    if(c == '\0'){
+    if(c == '\0' && error == false){
         printf("\nAnalisis sintactico correcto\n");
+        exit(EXIT_SUCCESS);
         return;
-    }else{
+    }else if(error == true){
         printf("\nError al hacer el analisis sintactico\n");
         exit(EXIT_FAILURE);
+        return;
     }
 }
-
+//Función para la declaración de varibles globales
+//Puede o no haber declaraciones globales
 void decl() {
     if(c == '{'){
         c = atomoActual();
@@ -869,13 +978,13 @@ void decl() {
         decl();
     }
 }
-
+//Función para mandar a llamar a mas funciones
 void masFunciones(){
     Fun();
     otraFun();
     return;
 }
-
+//Función para mandar llamar a mas funciones 
 void otraFun(){
     if(c == '}'){
         c = atomoActual();
@@ -903,21 +1012,92 @@ void leerCadena(){
     }
     atomos[size-1] = '\0';
     fclose(archCadena); 
+    pos_atomo = 0;
     c = atomos[0];      
 }
 
+//Función para escribir el archivo de cadenas de atomos
+void writeFile(int position, char *data){
+    FILE *file = fopen("cadena_salida.txt", "r+");
+    fseek(file, position, SEEK_SET);
+    fwrite(data, strlen(data), 1, file);
+    fclose(file);
+}
+
+// Función para leer el archivo de cadenas de atomos
+char *readFile(int position, int tamano){
+    FILE *file = fopen("cadena_salida.txt", "r+");
+    fseek(file,position,SEEK_SET);
+    char *buf = malloc (sizeof (char) * tamano); 
+    memset(buf, 0, tamano);
+    fread(buf, 1, tamano, file);
+    fclose(file);
+    return buf;
+}
+
+// Función para obtner el numero de elemetos del archivo de la cadena de atomos
+int contarElementos(int position){
+    char ch;
+	int count=1;
+    FILE *file = fopen("cadena_salida.txt", "r+");
+    fseek(file,position,SEEK_SET);
+    while((ch=fgetc(file))!=EOF) {
+		count++;
+	}
+    return count;
+}
+
+// Función para concatenar dos strings o arreglos de caracteres
+char *cat(int tamano, char *s1, char *s2){
+    tamano = tamano + 1;
+    char *str3 = malloc (sizeof (char) * tamano); 
+    memset(str3, 0, tamano);  
+    int i = 0, j = 0;  
+    while (s1[i] != '\0') {
+        str3[j] = s1[i];
+        i++;
+        j++;
+    }
+    i = 0;
+    while (s2[i] != '\0') {
+        str3[j] = s2[i];
+        i++;
+        j++;
+    }
+    str3[j] = '\0';
+    return str3;
+}
+
+//Función para reescribir el archivo de cadena de atomos
+//Continua con el analisis sintactico cuando encuentra un error
+void reescribir_atomo(char *s){
+    char ss[contarElementos(pos_atomo)];
+    strcpy (ss, readFile(pos_atomo,contarElementos(pos_atomo)));
+    char sss[(contarElementos(pos_atomo) + 1)];
+    strcpy (sss, cat(contarElementos(pos_atomo),s,ss));
+    writeFile(pos_atomo,sss);
+    leerCadena();
+    Programa();
+}
+
+//Función que regreasa el atomo donde vamos
+// y suma en uno su posición
 char atomoActual(){
     pos_atomo++;
     return atomos[pos_atomo];
 }
+//Función para comenzar el analisis sintactico de nuestro archivo fuente
+void analisis_sintactico(){
+    leerCadena(); 
+    Programa();  
+}
 
 
-// Funcion principal que llama a las funciones de abrir archivos, yylex() y cerrar archivos
+// Funcion principal que llama a las funciones de abrir archivos, yylex(), cerrar archivos y el analisis sintactico.
 void main(int argc, char *argv[]){
     yyin = fopen(argv[1],"r");
     open_files();
     yylex();
     close_files();
-    leerCadena(); 
-    Programa();
+    analisis_sintactico();
 }
