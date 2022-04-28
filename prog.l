@@ -1,10 +1,13 @@
 %{
 // Objetivo: 
-// 
+// Aplicar los conocimientos adquiridos durante la clase de compiladores para implementar un
+// analizador sintactico en conjunto con el analizador lexico previamente desarrollado, con
+// la gramatica propuesta por el grupo para identificar la estructura sintactica del programa
+// y con ello, validar la escritura de un archivo fuente.
 // INTEGRANTES:
 // MACEDA PATRICIO FERNANDO
 // CALDERON GUEVARA CESAR YAIR
-// FECHA DE REALIZACION: /ABR/2022 
+// FECHA DE REALIZACION: 24/ABR/2022 
 
 #include <string.h> // Biblioteca string para el manejo de memoria
 #include <stdio.h>  // Biblioteca estandar de entrada y salida
